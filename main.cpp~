@@ -1,0 +1,317 @@
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <string.h>
+#include "headers/hashtable.hpp"
+#include "headers/ListVal.hpp"
+using namespace std;
+
+int hashfuction(int a,int size){
+	return a%size;
+}
+
+int main(int argc,char **argv){
+FILE *fp=NULL;
+hashtable *h=NULL;
+int size=15;
+int flag=0;
+	if(argc==1){
+		cout << "Too few arguments" << endl;
+		exit(1); 
+	}
+	else{
+		if(strcmp(argv[1],"-o")==0){
+			fp=fopen(argv[2],"r");
+			if(fp==NULL){
+				cout << "File Not Found" << endl;
+				exit(1);
+			}
+		}
+		else if(argc==5){
+			if(strcmp(argv[3],"-o")==0){
+				fp=fopen(argv[4],"r");
+				if(fp==NULL){
+					cout << "File Not Found" << endl;
+					exit(1);
+				}
+			}
+		}
+		if(strcmp(argv[1],"-b")==0){
+			size=atoi(argv[2]);
+			if(size==0){
+				cout << "Wrong Bucket Size" << endl;
+				exit(1);
+			}
+			flag=1;
+		}
+		else if(argc==5){
+ 			if(strcmp(argv[3],"-b")==0){
+				size=atoi(argv[4]);
+				if(size==0){
+					cout << "Wrong Bucket Size" << endl;
+					exit(1);
+				}
+				flag=1;
+			}
+		}
+	}
+	//if(flag==0){
+	//	cout << "No bucketsize entered" << endl;
+	//	exit(1);
+	//}
+	//cout << size << endl;
+	h=new hashtable[size];
+	int options=0;
+	int flag2=1;//crucial if we want to know if after bye there will be another command
+
+	while(options==0){
+	char operation[100];
+	if(fp!=NULL){
+		if(!feof(fp)){
+			fgets(operation,100,fp);
+		}
+		else{
+			fclose(fp);
+			fp=NULL;
+		}
+		cout << operation << endl;
+		cout << "--------------------------" << endl;
+	}
+	else{
+		cout << "Please Give Command:" << endl;//done
+		cout << "createnodes N1 N2 N3 N4 ..." << endl;//done
+		cout << "delnodes N1 N2 N3 N4 ..." << endl;//done
+		cout << "addtran N1 N2 amount" << endl;//done
+		cout << "deltran N1 N2" << endl;//done
+		cout << "lookup [in|out|sum] N" << endl;//done
+		cout << "triangle N k" << endl;//done
+		cout << "conn N1 N2" << endl;
+		cout << "allcircles N" << endl;
+		cout << "traceflow N I" << endl;
+		cout << "bye" << endl;//done
+		cout << "print" << endl;//done
+		cout << "exit" << endl;//done
+		cout << endl;//done
+		scanf("%s",operation);//done
+		cout << "-----------------------" << endl;//done
+	}
+	char *temp;
+	temp=strtok(operation," \n");
+
+	if(flag2==0){
+		h=new hashtable[size];
+		flag2=1;
+	}
+	//cout << temp << endl;
+	if(strcmp(temp,"createnodes")==0){
+		temp=strtok(NULL," \n");
+		while(temp!=NULL){
+			int id=atoi(temp);
+			int pos=hashfuction(id,size);
+			if(id!=0){
+				h[pos].createNode(id);
+			}
+			else{
+				cout << "Failed to add id" << endl;
+			}
+			temp=strtok(NULL," \n");
+			cout << "success: created " << id << endl;
+		}
+	}
+	else if(strcmp(temp,"delnodes")==0){
+		temp=strtok(NULL," \n");
+		while(temp!=NULL){
+			int id=atoi(temp);
+			int pos=hashfuction(id,size);
+			if(id!=0){
+				h[pos].delNode(id);
+			}
+			else{
+				cout << "Failed to delete id" << endl;
+			}
+			temp=strtok(NULL," \n");
+		}
+	}
+	else if(strcmp(temp,"addtran")==0){
+		temp=strtok(NULL," \n");
+		int id1=0,id2=0;
+		double amount=0;
+		if(temp!=NULL){
+			id1=atoi(temp);
+		}
+		temp=strtok(NULL," \n");
+		if(temp!=NULL){
+			id2=atoi(temp);
+		}
+		temp=strtok(NULL," \n");
+		if(temp!=NULL){
+			amount=atof(temp);
+		}
+		int pos2=hashfuction(id2,size);
+		node *t=h[pos2].return_ptr(id2);
+		if(id1!=0 && id2!=0 && t!=NULL){
+			int pos=hashfuction(id1,size);
+			h[pos].addtran(id1,id2,amount,t);
+			cout << "success: added transcation " <<  id1 << " " << id2 << " with " << amount << endl;
+		}
+		else{
+			cout << "Failed to add transcation" << endl;
+		}
+		t=NULL;
+	}
+	else if(strcmp(temp,"deltran")==0){
+		temp=strtok(NULL," \n");
+		int id1=0,id2=0;
+		if(temp!=NULL){
+			id1=atoi(temp);
+		}
+		temp=strtok(NULL," \n");
+		if(temp!=NULL){
+			id2=atoi(temp);
+		}
+		if(id1!=0 && id2!=0){
+			int pos=hashfuction(id1,size);
+			h[pos].delTran(id1,id2);
+			cout << "success: deleted transcation" << "(" << id1 << "," << id2 << ")" << endl;
+		}
+		else{
+			cout << "Failed to delete transcation:" << endl;
+		}
+	}
+	else if(strcmp(temp,"lookup")==0){
+		temp=strtok(NULL," \n");
+		if(temp!=NULL){
+			int id=0;
+			if(strcmp(temp,"in")==0){
+				temp=strtok(NULL," \n");
+				if(temp!=NULL){
+					id=atoi(temp);
+				}
+				if(id!=0){
+					int pos=hashfuction(id,size);
+					h[pos].lookup1(id);
+				}
+			}
+			else if(strcmp(temp,"out")==0){
+				temp=strtok(NULL," \n");
+				if(temp!=NULL){
+					id=atoi(temp);
+				}
+				if(id!=0){
+					int pos=hashfuction(id,size);
+					h[pos].lookup2(id);
+				}
+			}
+			else if(strcmp(temp,"sum")==0){
+				temp=strtok(NULL," \n");
+				if(temp!=NULL){
+					id=atoi(temp);
+				}
+				if(id!=0){
+					int pos=hashfuction(id,size);
+					h[pos].lookup3(id);
+				}
+			}
+		}
+	}
+	else if(strcmp(temp,"triangle")==0){
+		temp=strtok(NULL," \n");
+		int id=0,k=0;
+		if(temp!=NULL){
+			id=atoi(temp);
+
+		}
+		temp=strtok(NULL," \n");
+		if(temp!=NULL){
+			k=atoi(temp);
+		}
+		if(id!=0){
+			int pos=hashfuction(id,size);
+			h[pos].triangle(id,k);
+		}
+		else{
+			cout << "Not such id" << endl;
+		}
+	}
+	else if(strcmp(temp,"conn")==0){
+		temp=strtok(NULL," \n");
+		int id1=0,id2=0;
+		if(temp!=NULL){
+			id1=atoi(temp);
+		}
+		temp=strtok(NULL," \n");
+		if(temp!=NULL){
+			id2=atoi(temp);
+		}
+		if(id1!=0 && id2!=0){
+			int pos=hashfuction(id1,size);
+			h[pos].triangle(id1,id2);
+		}
+		else{
+			cout << "Error wrong ids" << endl;
+		}
+
+	}
+	else if(strcmp(temp,"allcycles")==0 || strcmp(temp,"allcircles")==0){
+		temp=strtok(NULL," \n");
+		int id=0;
+		if(temp!=NULL){
+			id=atoi(temp);
+		}
+		if(id!=0){
+			//cout << id << endl;
+		}
+	}
+	else if(strcmp(temp,"traceflow")==0){
+		temp=strtok(NULL," \n");
+		int id,l;
+		if(temp!=NULL){
+			id=atoi(temp);
+		}
+		temp=strtok(NULL," \n");
+		if(temp!=NULL){
+			l=atoi(temp);
+		}
+		if(id!=0){
+			//cout << id << " " << l << endl;
+		}
+	}
+	else if(strcmp(temp,"print")==0){
+		for(int i=0;i<size;i++){
+			h[i].print();
+		}
+	}
+	else if(strcmp(temp,"bye")==0){
+		if(feof(fp)){
+			fclose(fp);
+			fp=NULL;
+		}
+		if(h!=NULL){
+			delete[] h;
+		}
+		h=NULL;
+		flag2=0; // a flag if there will be another commmand after bye
+		cout << "Structures Freed" << endl;
+	}
+	else if(strcmp(temp,"exit")==0){
+		options=1;
+		cout << "Thank You For Using My Programm" << endl;
+	}
+	else{
+		cout << "Wrong Command" << endl;
+	}
+	cout << "------------------------" << endl;
+	cout << endl;
+
+	}
+
+
+	if(fp!=NULL){
+		fclose(fp);
+	}
+	if(h!=NULL){
+	delete[] h;
+	}
+}

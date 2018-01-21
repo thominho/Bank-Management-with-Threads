@@ -1,0 +1,46 @@
+#ifndef HASHTABLE_HPP
+#define HASHTABLE_HPP
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
+#include "ListVal.hpp"
+using namespace std;
+
+class hashtable{
+private:
+
+
+	node *_start;
+	int size;
+
+
+public:
+
+	//na ftia3w tis delete node kai delete trans
+	hashtable();
+	~hashtable();
+	void destroy();
+	void createNode(int id);
+	void delNode(int id);
+	void addtran(int id1,int id2,double amount,node *t);
+	void delTran(int id1,int id2);
+	void lookup1(int id); //xrhmata bghkan
+	void lookup2(int id); //xrhmata mphkan
+	void lookup3(int id); //xrhmata bghkan kai mphkan
+	void triangle(int id,int k);//k means that the limit transcation from the one node to the other must be k
+	void conn(int id1,int id2);
+	void allcircles(int id1);
+	void traceflow(int id1,int depth);//ekroes xrhmatwn mexri bathos depth
+	void print();
+
+
+	//-------------additional needed fuctions-----------------------
+	node *return_ptr(int id);
+	int dfs(node::tran *t,int *path,int &csize,int &maxsize,int id1);
+};
+
+
+
+#endif

@@ -1,0 +1,479 @@
+#include "../headers/hashtable.hpp"
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+hashtable::hashtable(){
+	size=0;
+	_start=NULL;
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+hashtable::~hashtable(){
+	while(size!=0){
+		destroy();
+	}
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+void hashtable::destroy(){
+	node *t=_start;
+	if(size==0){
+		return;
+	}
+	_start=_start->next;
+	while(t->size!=0){
+		node::tran *t2=t->edge;
+		t->edge=t->edge->next;
+		delete t2;
+		t->size--;
+	}
+	delete t;
+	size--;
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+node * hashtable::return_ptr(int id){
+	node *t=_start;
+	if(size==0){
+		cout << "List empty" << endl;
+		return NULL;
+	}
+	while(t!=NULL){
+		if(t->id==id){
+			break;
+		}
+		t=t->next;
+	}
+	return t;
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+void hashtable::addtran(int id1,int id2,double amount,node *t2){
+	node *t=_start;
+	if(size==0){
+		cout << "List empty" << endl;
+		return;
+	}
+	while(t!=NULL){
+		if(t->id==id1){
+			break;
+		}
+		t=t->next;
+	}
+	if(t==NULL){
+		cout << "Could not find id" << endl;
+		return;
+	}
+	node::tran *t3=t->edge;
+	while(t3!=NULL){
+		if(t3->ptr->id==id2){
+			t3->amount=t3->amount+amount;
+			t3->ptr->money=t3->ptr->money+amount;
+			cout << "Amount added to an existed transcation" << endl;
+			return;
+		}
+		t3=t3->next;
+	}
+	t->edge=new node::tran(amount,t2,t->edge);
+	if(t->edge==NULL){
+		cout << "Could Not Add Transcations->RAM problem" << endl;
+		exit(1);
+	}
+	t->edge->ptr->counter++;
+	t->edge->ptr->money=t->edge->ptr->money+amount;
+	t->size++;
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+void hashtable::createNode(int id){
+	_start=new node(id,_start);
+	if(_start==NULL){
+		cout << "Could Not Add Transcations->RAM problem" << endl;
+		exit(1);
+	}
+	size++;
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+void hashtable::lookup1(int id){
+	node *t=_start;
+	if(size==0){
+		cout << "List empty" << endl;
+		return;
+	}
+	while(t!=NULL){
+		if(t->id==id){
+			cout << "success: in(" << id << ") = " << t->money << endl;
+			return;
+		}
+		t=t->next;
+	}
+	cout << "Error:Could not find such id for in(" << id << ")" << endl;
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+void hashtable::lookup2(int id){
+	node *t=_start;
+	if(size==0){
+		cout << "List empty" << endl;
+		return;
+	}
+	while(t!=NULL){
+		if(t->id==id){
+			int counter=0;
+			node::tran *t2=t->edge;
+			while(t2!=NULL){
+				counter=counter+t2->amount;
+				t2=t2->next;
+			}
+			cout << "success: out(" << id << ") = " << counter << endl;
+			return;
+		}
+		t=t->next;
+	}
+	cout << "Error:Could not find such id for out(" << id << ")" << endl;
+
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+void hashtable::lookup3(int id){
+	node *t=_start;
+	if(size==0){
+		cout << "List empty" << endl;
+		return;
+	}
+	while(t!=NULL){
+		if(t->id==id){
+			int counter=0;
+			node::tran *t2=t->edge;
+			while(t2!=NULL){
+				counter=counter+t2->amount;
+				t2=t2->next;
+			}
+			counter=t->money-counter;
+			cout << "success: sum(" << id << ") = " << counter << endl;
+			return;
+		}
+		t=t->next;
+	}
+	cout << "Error:Could not find such id for sum(" << id << ")" << endl;
+
+}
+
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+void hashtable::delNode(int id1){//need fixing diagrafw mono an den uparxoun kombei pou na deixnoun se auton h autos na deixnei kapou tha rwthsw aurio
+	node *t=_start;
+	node *t2=_start->next;
+	if(size==0){
+		cout << "List empty" << endl;
+		return;
+	}
+	if(t->id==id1){
+		if(t->counter!=0 || t->size!=0){
+			cout << "Failed to delete Node existed imports or exports transcactions" << endl;
+			return;
+		}
+		else if(t->counter==0 && t->size==0){
+			_start=t2;
+			delete t;
+			size--;
+			return;
+		}
+	}
+	while(t2!=NULL){
+		if(t2->id==id1){
+			break;
+		}
+		t=t->next;
+		t2=t2->next;
+	}
+	if(t2==NULL){
+		cout << "Error:Could not find such node to delete" << endl;
+		return;
+	}
+	if(t2->counter!=0 || t2->size!=0){
+		cout << "Failed to delete Node existed imports or exports transcactions" << endl;
+		return;
+	}
+	else if(t2->counter==0 && t2->size==0){
+		t->next=t2->next;
+		delete t2;
+		size--;
+	}
+	cout << "success: deleted " << id1 << endl;
+}
+
+
+/*----------------------------------------------------------------------------------------------------*/
+
+
+void hashtable::delTran(int id1,int id2){
+	node *t=_start;
+	if(size==0){
+		cout << "List empty" << endl;
+		return;
+	}
+	if(t->size==0){
+		cout << "No transcaction to delete" << endl;
+		return;
+	}
+	while(t!=NULL){
+		if(t->id==id1){
+			break;
+		}
+		t=t->next;
+	}
+	if(t==NULL){
+		cout << "Error:Could not find such transcaction with selected id to delete:" << id1 << endl;
+		return;
+	}
+	node::tran *t2=t->edge;
+	node::tran *t3=t->edge->next;
+	if(t2->ptr->id==id2){
+		t2->ptr->money=t2->ptr->money-t2->amount;
+		t2->ptr->counter--;
+		t->edge=t3;
+		delete t2;
+		t->size--;
+		return;
+	}
+	while(t3!=NULL){
+		if(t3->ptr->id==id2){
+			t3->ptr->money=t3->ptr->money-t2->amount;
+			t3->ptr->counter--;
+			t2->next=t3->next;
+			delete t3;
+			t->size--;
+			return;
+		}
+		t3=t3->next;
+		t2=t2->next;
+	}
+	cout << "Error:Could not find such transcaction" << endl;
+}
+
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+
+void hashtable::print(){
+	node *t=_start;
+	if(size==0){
+		return;
+	}
+	while(t!=NULL){
+		cout << "vertex(" << t->id << ") =";
+		node::tran *t2=t->edge;
+		while(t2!=NULL){
+			cout << "(" << t2->ptr->id << "," << t2->amount << "),";
+			t2=t2->next;
+		}
+		t=t->next;
+		cout << endl;
+	}
+}
+
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+void hashtable::triangle(int id,int k){
+	node *t=_start;
+	if(size==0){
+		cout << "List empty" << endl;
+		return;
+	}
+	while(t!=NULL){
+		if(t->id==id){
+			break;
+		}
+		t=t->next;
+	}
+	if(t==NULL){
+		cout << "Not Such Id" << endl;
+		return;
+	}
+	int *checked;
+	checked=(int *) malloc(sizeof(int)*50);
+	int csize=0;
+	int msize=50;
+	for(int i=0;i<msize;i++){
+		checked[i]=0;
+	}
+	node::tran *t2=t->edge;
+	while(t2!=NULL){
+		node *t3=t2->ptr;
+		node::tran *t4=t3->edge;
+		while(t4!=NULL){
+			node *t5=t4->ptr;
+			node::tran *t6=t5->edge;
+			while(t6!=NULL){
+				if(csize<msize && t6->amount>=k && t2->amount>=k && t6->ptr->id==id){
+					checked[csize]=t3->id;
+					checked[csize+1]=t5->id;
+					csize=csize+2;
+				}
+				else if(csize>=msize && t6->amount>=k && t2->amount>=k && t6->ptr->id==id){
+					msize=msize*2;
+					checked=(int *) realloc(checked,sizeof(int)*msize);
+					checked[csize]=t3->id;
+					checked[csize+1]=t5->id;
+					csize=csize+2;
+				}
+				t6=t6->next;
+			}
+			t4=t4->next;
+		}
+		t2=t2->next;
+	}
+	int i=0;
+	if(csize!=0){
+		cout << "Success: " << "Triangle(" << id << "," << k << ")" << "=" << endl; 
+	}
+	else{
+		cout << "Not Triangle Found" << endl;
+		free(checked);
+		return;
+	}
+	while(i<csize){
+		if(checked[i]!=0){
+			cout << "(" << id << "," << checked[i] << "," << checked[i+1] << ")" << endl;
+			for(int j=i;j<csize;j++){
+				if( (checked[i]==checked[j] || checked[i]==checked[j+1])  &&  (checked[i+1]==checked[j] || checked[i+1]==checked[j+1]) ){
+					checked[j]=0;
+					checked[j+1]=0;
+				}
+			}
+		}
+		i=i+2;
+	}
+	free(checked);
+
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+
+void hashtable::conn(int id1,int id2){
+	if(size==0){
+		cout << "List Empty" << endl;
+		return;
+	}
+	node *t=_start;
+	while(t!=NULL){
+		if(t->id==id1){
+			break;
+		}
+		t=t->next;
+	}
+	if(t==NULL){
+		cout << "Could Not Find Id to search from" << endl;
+		return;
+	}
+	int *array;
+	size=50;
+	array=(int *) malloc(sizeof(int)*size);
+	for(int i=0;i<size;i++){
+		array[i]=0;
+	}
+	int temp=0;
+	if(t->size==0){
+		cout << "No edges to search for" << endl;
+		return;
+	}
+	array[0]=id1;
+	node::tran *t2=t->edge;
+	temp=temp+2;
+	while(t2!=NULL){
+		if(t2->ptr->id==id2){
+			cout << "success: (" << id1 << "," << id2 << ")" << endl;
+			free(array);
+			return;
+		}
+		else{
+			array[1]=t2->ptr->id;
+			int flag=dfs(t2,array,temp,size,id2);
+			if(flag==1){
+				cout << "success: (";
+				for(int i=0;i<temp;i++){
+					if(i<temp){
+						cout << array[i] << ",";
+					}
+					else{
+						cout << array[i] << ")";
+					}
+				}
+				free(array);
+				return;
+			}
+		}
+		t2=t2->next;
+	}
+	if(t2==NULL){
+		cout << "Could Not Find Path" << endl;
+		free(array);
+		return;
+	}
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+int hashtable::dfs(node::tran *t,int *path,int &csize,int &maxsize,int id1){
+	node *temp=t->ptr;
+	if(t->ptr->size==0){
+		return 0;
+	}
+	node::tran *temp2=temp->edge;
+	while(temp2!=NULL){
+		if(temp2->ptr->id==id1){
+			if(csize<maxsize){
+				path[csize]=id1;
+				csize++;
+			}
+			else{
+				maxsize=maxsize*2;
+				path=(int *) realloc(path,sizeof(int)*maxsize);
+				path[csize]=id1;
+				csize++;
+			}
+				return 1;
+		}
+		else{
+			int flag=0;
+			for(int i=0;i<csize;i++){
+				if(path[i]==temp2->ptr->id){
+					flag=1;
+				}
+			}
+			if(flag!=1){
+				if(csize<maxsize){
+					path[csize]=id1;
+					csize++;
+				}
+				else{
+					maxsize=maxsize*2;
+					path=(int *) realloc(path,sizeof(int)*maxsize);
+					path[csize]=id1;
+					csize++;
+				}
+				flag=dfs(temp2,path,csize,maxsize,id1);
+				if(flag==1){
+					return 1;
+				}
+				else{
+					csize--;
+				}
+			}
+		}
+		temp2=temp2->next;
+	}
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------------------------------*/
