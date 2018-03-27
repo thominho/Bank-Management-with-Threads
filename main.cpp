@@ -53,6 +53,7 @@ void *worker(void *args){
 	data = (struct worker_t*) args;
 	int flag=0;
 	int newsock;
+	int magkas=0;
 	while(1){
 		char operation[9999];
 		char *temp;
